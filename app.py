@@ -7,9 +7,9 @@ import requests
 from datetime import datetime
 
 SUPABASE_URL = st.secrets.get("SUPABASE_URL", "https://ynvzpugktkcplkmhnxpj.supabase.co")
-SUPABASE_KEY = st.secrets.get("SUPABASE_KEY", "")
-BH_REST_URL  = st.secrets.get("BH_REST_URL", "")
-BH_TOKEN     = st.secrets.get("BH_TOKEN", "")
+SUPABASE_KEY = st.secrets.get("SUPABASE_KEY", st.secrets.get("supabase_key", ""))
+BH_REST_URL  = st.secrets.get("BH_REST_URL", st.secrets.get("bh_rest_url", ""))
+BH_TOKEN     = st.secrets.get("BH_TOKEN", st.secrets.get("bh_token", ""))
 
 JO_IDS = list(range(13597, 13608))
 
@@ -61,8 +61,13 @@ def get_last_sync():
         f"{SUPABASE_URL}/rest/v1/sow_meta?key=eq.last_sync&select=value",
         headers=_headers()
     )
-    data = r.json()
-    return data[0]["value"] if data else None
+    try:
+        data = r.json()
+        if isinstance(data, list) and data:
+            return data[0].get("value")
+    except Exception:
+        pass
+    return None
 
 def set_last_sync(ts):
     requests.post(
